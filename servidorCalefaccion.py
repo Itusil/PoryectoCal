@@ -87,6 +87,8 @@ while True:
             esp=0
         if(esp==0):
             #Hay que canbiar el string de respuesta por un OK
+            for xx in range (0, len(radiadores)):
+                radiadores[xx].tempe=temp
             res="Temperatura en todos los radiadores cambiada a "+str(temp)
             s.sendto( res.encode(), dir_cli)
         else:

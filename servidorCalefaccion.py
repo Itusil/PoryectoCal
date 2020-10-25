@@ -9,23 +9,18 @@ s = socket.socket( socket.AF_INET, socket.SOCK_DGRAM )
 s.bind( ('', PORT) )
 
 class Radiador:
-  def __init__(self, ida, nombre, tempe ,estado):
+  def __init__(self, ida, nombre, tempeFuera , tempeRadia,estado):
     self.ida = ida
     self.nombre=nombre
-    self.tempe = tempe
+    self.tempeFuera = tempeFuera
+    self.tempeRadia = tempeRadia
     self.estado=estado
-  def setTemp(tempp):
-    self.tempe=tempp
 
-  def getEstado():
-    return self.estado 
-  def setEstado(est__):
-    self.estado=est__
 
 radiadores= list()
-r1= Radiador("1234", "Habitación1","234","1")
-r2= Radiador("20", "Habitación2","200","1")
-r3= Radiador("5", "Cuarto de baño", "237", "0")
+r1= Radiador("1234", "Habitación1","234","200", "1")
+r2= Radiador("20", "Habitación2","278", "250","1")
+r3= Radiador("5", "Cuarto de baño", "237", "237", "0")
 radiadores.append(r1)
 radiadores.append(r2)
 radiadores.append(r3)
@@ -122,7 +117,7 @@ while True:
         if(longitud == 3):
             mensaje = ""
             for www in range(0, len(radiadores)):
-                mensaje= mensaje+radiadores[www].ida+","+radiadores[www].tempe
+                mensaje= mensaje+radiadores[www].ida+","+radiadores[www].tempeFuera
                 ult =len(radiadores)-1
                 if(www != ult):
                     mensaje=mensaje+":"
@@ -136,7 +131,7 @@ while True:
                 intid = int(ida)
                 pos= radiadorExiste(ida)
                 if (pos>=0):
-                    mensaje=radiadores[pos].tempe
+                    mensaje=radiadores[pos].tempeFuera
                     s.sendto( mensaje.encode(), dir_cli)
                     #sendOK(s, dir_cli, mensaje)
                 else:
@@ -154,7 +149,7 @@ while True:
         if(longitud==3):
             mensaje=""
             for www in range(0, len(radiadores)):
-                mensaje= mensaje+"Radiador id: "+ radiadores[www].ida+", temperatura: "+radiadores[www].tempe+"\n"
+                mensaje= mensaje+"Radiador id: "+ radiadores[www].ida+", temperatura: "+radiadores[www].tempeRadia+"\n"
             s.sendto( mensaje.encode(), dir_cli)
         else:
             ida=""
@@ -165,7 +160,7 @@ while True:
                 intid = int(ida)
                 pos= radiadorExiste(ida)
                 if (pos>=0):
-                    mensaje=radiadores[pos].tempe
+                    mensaje=radiadores[pos].tempeRadia
                     s.sendto( mensaje.encode(), dir_cli)
                     #sendOK(s, dir_cli, mensaje)
                 else:
@@ -193,7 +188,7 @@ while True:
                 inttemp = int(temp)
                 if(longitud == 6):
                     for xx in range (0, len(radiadores)):
-                        radiadores[xx].tempe=temp
+                        radiadores[xx].tempeRadia=temp
                     res="Temperatura en todos los radiadores cambiada a "+str(temp)
                     s.sendto( res.encode(), dir_cli)
                     #sendOK(s, dir_cli, "")
@@ -205,7 +200,7 @@ while True:
                         intid = int(ida)
                         pos = radiadorExiste(str(ida))
                         if(pos>=0):
-                            radiadores[pos].tempe=temp
+                            radiadores[pos].tempeRadia=temp
                             s.sendto( temp.encode(), dir_cli)
                             #sendOK(s, dir_cli,"")
                         else:

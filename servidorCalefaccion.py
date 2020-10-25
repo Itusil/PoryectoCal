@@ -9,8 +9,9 @@ s = socket.socket( socket.AF_INET, socket.SOCK_DGRAM )
 s.bind( ('', PORT) )
 
 class Radiador:
-  def __init__(self, ida, tempe ,estado):
+  def __init__(self, ida, nombre, tempe ,estado):
     self.ida = ida
+    self.nombre=nombre
     self.tempe = tempe
     self.estado=estado
   def setTemp(tempp):
@@ -22,13 +23,20 @@ class Radiador:
     self.estado=est__
 
 radiadores= list()
-r1= Radiador("1234","234","1")
-r2= Radiador("20", "200","1")
+r1= Radiador("1234", "Habitación1","234","1")
+r2= Radiador("20", "Habitación2","200","1")
+r3= Radiador("5", "Cuarto de baño", "237", "0")
 radiadores.append(r1)
 radiadores.append(r2)
+radiadores.append(r3)
 
 
 
+def sendOK( s, dir_cli, params="" ):
+	s.sendto( ("OK{}\r\n".format( params )).encode( "ascii" ), dir_cli)
+
+def sendER( s, dir_cli, code=1):
+	s.sendto( ("ER{}\r\n".format( code )).encode( "ascii" ), dir_cli)
 
 
 def radiadorExiste(id_):
@@ -46,64 +54,174 @@ while True:
     comand= lista[0]+lista[1]+lista[2]
 
     if(comand == "ONN"):
-       s.sendto( "Comando ONN".encode(), dir_cli)
+       #s.sendto( "Comando ONN".encode(), dir_cli)
+
+        if(longitud == 4):
+            if(lista[3] == "0"):
+                for onnn in range(0, len(radiadores)):
+                    radiadores[onnn].estado="0"
+                s.sendto( "0".encode(), dir_cli)
+                #sendOK(s, dir_cli, "")
+            elif(lista[3] == "1"):
+                for onnn in range(0, len(radiadores)):
+                    radiadores[onnn].estado="1"
+                s.sendto( "1".encode(), dir_cli)
+                #sendOK(s, dir_cli, "")
+            else:
+                print("ERROR")
+                #sendER(s, dir_cli, 4)
+                #exit()
+        elif(longitud >4):
+            i = 4
+            idd = ""
+            while(i < longitud):
+                idd += lista[i]
+                i += 1
+            try:
+                intid = int(idd)
+                di= radiadorExiste(idd)
+                if(di != 0):
+                    if(lista[3] == "0"):
+                        for onnn in range(0, len(radiadores)):
+                            radiadores[onnn].estado="0"
+                        s.sendto( "0".encode(), dir_cli)
+                        #sendOK(s, dir_cli, "")
+                    elif(lista[3] == "1"):
+                        for onnn in range(0, len(radiadores)):
+                            radiadores[onnn].estado="1"
+                        s.sendto( "0".encode(), dir_cli)
+                        #sendOK(s, dir_cli, "")
+                else:
+                    print("No existe el radiador")
+                    #sendER(s, dir_cli,11)
+            except ValueError:
+                print("Id con formato incorrecto")
+                #exit(4)
+                #sendER(s, dir_cli,4)
+        else:
+            print("Falta parámetro")
+            #sendER(s, dir_cli,3)
+        
+        
     elif(comand == "NAM"):
-        s.sendto( "Comando NAM".encode(), dir_cli)
+        #s.sendto( "Comando NAM".encode(), dir_cli)
+        if(longitud>3):
+            print("ERROR")
+            #sendER(s, dir_cli,2 )
+        else:
+            mensaje = ""
+            for www in range(0, len(radiadores)):
+                mensaje= mensaje+radiadores[www].ida+","+radiadores[www].nombre 
+                if(www != (len(radiadores)-1)):
+                    mensaje=mensaje+":"
+            s.sendto( mensaje.encode(), dir_cli)
+            #sendOK(s, dir_cli, mensaje)
+
     elif(comand == "NOW"):
-        s.sendto( "Comando NOW".encode(), dir_cli)
+        #s.sendto( "Comando NOW".encode(), dir_cli)
+        if(longitud == 3):
+            mensaje = ""
+            for www in range(0, len(radiadores)):
+                mensaje= mensaje+radiadores[www].ida+","+radiadores[www].tempe
+                ult =len(radiadores)-1
+                if(www != ult):
+                    mensaje=mensaje+":"
+            s.sendto( mensaje.encode(), dir_cli)
+            #sendOK(s, dir_cli, mensaje)
+        else:
+            ida=""
+            for x in range(3,len(lista)):
+                ida=ida+lista[x]
+            try:
+                intid = int(ida)
+                pos= radiadorExiste(ida)
+                if (pos>=0):
+                    mensaje=radiadores[pos].tempe
+                    s.sendto( mensaje.encode(), dir_cli)
+                    #sendOK(s, dir_cli, mensaje)
+                else:
+                    mensaje="ERROR"
+                    s.sendto( mensaje.encode(), dir_cli) 
+                    #sendER(s, dir_cli,13)
+            except ValueError:
+                print("Id con formato incorrecto")
+                #exit(4)
+                #sendER(s, dir_cli,4)
+            
+
     elif(comand == "GET"):
         #s.sendto( "Comando GET".encode(), dir_cli)
-        if(longitud>3):
-            esp=1
-            ida=list()
+        if(longitud==3):
+            mensaje=""
+            for www in range(0, len(radiadores)):
+                mensaje= mensaje+"Radiador id: "+ radiadores[www].ida+", temperatura: "+radiadores[www].tempe+"\n"
+            s.sendto( mensaje.encode(), dir_cli)
+        else:
+            ida=""
             for x in range(3,len(lista)):
-                ida.append(lista[x])
-        else:
-            esp=0
-        if(esp==0):
-            #Hay que canbiar el string de respuesta por un OK
-            res="Temperatura en todos los radiadores ????"
-            s.sendto( res.encode(), dir_cli)
-        else:
-            idas=''.join(ida)
-            pos = radiadorExiste(str(idas))
-            if(pos==-1):
-                s.sendto( "ERROR RADIADOR".encode(), dir_cli)
-                #exit(15)
-            #hacer obtener radiadior y cambiarla la temperatura con radiadores[pos].setTemp()...
-            r=radiadores[pos]
-            res="Temperatura del radiador id: "+r.ida+" es "+r.tempe
-            s.sendto( res.encode(), dir_cli)
+                ida=ida+lista[x]
+            pos = radiadorExiste(str(ida))
+            try:
+                intid = int(ida)
+                pos= radiadorExiste(ida)
+                if (pos>=0):
+                    mensaje=radiadores[pos].tempe
+                    s.sendto( mensaje.encode(), dir_cli)
+                    #sendOK(s, dir_cli, mensaje)
+                else:
+                    mensaje="ERROR"
+                    s.sendto( mensaje.encode(), dir_cli) 
+                    #sendER(s, dir_cli,14)
+            except ValueError:
+                print("Id con formato incorrecto")
+                #exit(4)
+                #sendER(s,dir_cli,4)
+
+
 
     elif(comand == "SET"):
         #s.sendto( "Comando SET".encode(), dir_cli)
-        temp=lista[3]+lista[4]+lista[5]
-        if(longitud>6):
-            esp=1
-            ida=list()
-            for x in range(6,len(lista)):
-                ida.append(lista[x])
+        if(longitud == 3):
+            print("ERROR")
+            #sendER(s, dir_cli, 3)
+        elif(longitud<6):
+            print("ERROR")
+            #sendER(s, dir_cli, 4)
         else:
-            esp=0
-        if(esp==0):
-            #Hay que canbiar el string de respuesta por un OK
-            for xx in range (0, len(radiadores)):
-                radiadores[xx].tempe=temp
-            res="Temperatura en todos los radiadores cambiada a "+str(temp)
-            s.sendto( res.encode(), dir_cli)
-        else:
-            idas=''.join(ida)
-            pos = radiadorExiste(str(idas))
-            if(pos==-1):
-                s.sendto( "ERROR RADIADOR".encode(), dir_cli)
-                #exit(15)
-            #hacer obtener radiadior y cambiarla la temperatura con radiadores[pos].setTemp()...
-            radiadores[pos].tempe=str(temp)
-            r=radiadores[pos]
-            res="Temperatura en el radiador id: "+r.ida+" cambiada a "+r.tempe
-            s.sendto( res.encode(), dir_cli)
+            temp=lista[3]+lista[4]+lista[5]
+            try:
+                inttemp = int(temp)
+                if(longitud == 6):
+                    for xx in range (0, len(radiadores)):
+                        radiadores[xx].tempe=temp
+                    res="Temperatura en todos los radiadores cambiada a "+str(temp)
+                    s.sendto( res.encode(), dir_cli)
+                    #sendOK(s, dir_cli, "")
+                else:
+                    ida=""
+                    for x in range(6,len(lista)):
+                        ida= ida +lista[x]
+                    try:
+                        intid = int(ida)
+                        pos = radiadorExiste(str(ida))
+                        if(pos>=0):
+                            radiadores[pos].tempe=temp
+                            s.sendto( temp.encode(), dir_cli)
+                            #sendOK(s, dir_cli,"")
+                        else:
+                            s.sendto( "ERROR RADIADOR".encode(), dir_cli)
+                            #sendER(s, dir_cli, 15)
+                    except ValueError:
+                        print("Id con formato incorrecto")
+                        #exit(4)
+                        #sendER(s, dir_cli,4)
+            except ValueError:
+                print("Temperatura con formato incorrecto")
+                #exit(4)
+                #sendER(s, dir_cli,4)
     else:
 	        s.sendto( "MAL COMANDO".encode(), dir_cli)
+            #sendER(s, dir_cli, 1)
 
 
 s.close()

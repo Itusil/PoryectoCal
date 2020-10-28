@@ -66,8 +66,8 @@ while True:
                 print("ERROR")
                 #sendER(s, dir_cli, 4)
                 #exit()
-        elif(longitud >4):
-            i = 4
+        elif(longitud >4 and lista[4] == ":"):
+            i = 5
             idd = ""
             while(i < longitud):
                 idd += lista[i]
@@ -75,17 +75,19 @@ while True:
             try:
                 intid = int(idd)
                 di= radiadorExiste(idd)
-                if(di != 0):
+                if(di >= 0):
                     if(lista[3] == "0"):
-                        for onnn in range(0, len(radiadores)):
-                            radiadores[onnn].estado="0"
-                        s.sendto( "0".encode(), dir_cli)
+                        radiadores[di].estado="0"
+                        s.sendto( radiadores[di].estado.encode(), dir_cli)
                         #sendOK(s, dir_cli, "")
                     elif(lista[3] == "1"):
-                        for onnn in range(0, len(radiadores)):
-                            radiadores[onnn].estado="1"
-                        s.sendto( "0".encode(), dir_cli)
+                        radiadores[di].estado="1"
+                        s.sendto( radiadores[di].estado.encode(), dir_cli)
                         #sendOK(s, dir_cli, "")
+                    else:
+                        print("ERROR")
+                        #sendER(s, dir_cli, 4)
+                        #exit()
                 else:
                     print("No existe el radiador")
                     #sendER(s, dir_cli,11)
@@ -94,8 +96,11 @@ while True:
                 #exit(4)
                 #sendER(s, dir_cli,4)
         else:
-            print("Falta parámetro")
-            #sendER(s, dir_cli,3)
+            if(longitud <4):
+                #print("Falta parámetro")
+                sendER(s, dir_cli,3)
+            else:
+                s.sendto( "Error separador".encode(), dir_cli)
         
         
     elif(comand == "NAM"):
@@ -177,10 +182,10 @@ while True:
     elif(comand == "SET"):
         #s.sendto( "Comando SET".encode(), dir_cli)
         if(longitud == 3):
-            print("ERROR")
+	        s.sendto( "FALTA PARAMETRO".encode(), dir_cli)
             #sendER(s, dir_cli, 3)
         elif(longitud<6):
-            print("ERROR")
+	        s.sendto( "TEMPERATURA MAL".encode(), dir_cli)
             #sendER(s, dir_cli, 4)
         else:
             temp=lista[3]+lista[4]+lista[5]
@@ -192,9 +197,9 @@ while True:
                     res="Temperatura en todos los radiadores cambiada a "+str(temp)
                     s.sendto( res.encode(), dir_cli)
                     #sendOK(s, dir_cli, "")
-                else:
+                elif(longitud >6 and lista[6]==":"):
                     ida=""
-                    for x in range(6,len(lista)):
+                    for x in range(7,len(lista)):
                         ida= ida +lista[x]
                     try:
                         intid = int(ida)
@@ -207,11 +212,14 @@ while True:
                             s.sendto( "ERROR RADIADOR".encode(), dir_cli)
                             #sendER(s, dir_cli, 15)
                     except ValueError:
-                        print("Id con formato incorrecto")
+                        s.sendto("id con formato incorrecto".encode(), dir_cli)
                         #exit(4)
                         #sendER(s, dir_cli,4)
+                else:
+                    s.sendto( "ERROR Separador".encode(), dir_cli)
+                    #sendER(s, dir_cli, 15)
             except ValueError:
-                print("Temperatura con formato incorrecto")
+                s.sendto("Temperatura con formato incorrecto".encode(), dir_cli)
                 #exit(4)
                 #sendER(s, dir_cli,4)
     else:

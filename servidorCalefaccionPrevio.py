@@ -28,10 +28,10 @@ radiadores.append(r3)
 
 
 def sendOK( s, dir_cli, params="" ):
-	s.sendto( ("OK{}\r\n".format( params )).encode( "ascii" ), dir_cli)
+	s.sendto( ("OK{}".format( params )).encode( "ascii" ), dir_cli)
 
 def sendER( s, dir_cli, code=1):
-	s.sendto( ("ER{}\r\n".format( code )).encode( "ascii" ), dir_cli)
+	s.sendto( ("ER{}".format( code )).encode( "ascii" ), dir_cli)
 
 
 def radiadorExiste(id_):
@@ -110,6 +110,7 @@ while True:
             #sendER(s, dir_cli,2 )
         else:
             mensaje = ""
+            #mensaje vacio error 12
             for www in range(0, len(radiadores)):
                 mensaje= mensaje+radiadores[www].ida+","+radiadores[www].nombre 
                 if(www != (len(radiadores)-1)):
@@ -180,6 +181,7 @@ while True:
 
 
     elif(comand == "SET"):
+        #no devuelve nada solo devuelve el oK
         #s.sendto( "Comando SET".encode(), dir_cli)
         if(longitud == 3):
 	        s.sendto( "FALTA PARAMETRO".encode(), dir_cli)
